@@ -99,7 +99,7 @@ ON CONFLICT (start_time) DO NOTHING
 
 song_select = ("""
 SELECT songs.song_id, artists.artist_id
-FROM songs JOIN artists ON songs.song_id = artists.artist_id
+FROM songs JOIN artists ON songs.artist_id = artists.artist_id
 WHERE songs.title = %s AND artists.name = %s AND songs.duration = %s
 """)
 
