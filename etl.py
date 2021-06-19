@@ -6,12 +6,20 @@ from sql_queries import *
 
 
 def process_song_file(cur, filepath):
+    """
+    Processes a single JSON song file.
+     - Reads the JSON song file
+     - Inserts relevant song data from log file as a record into the `songs`
+       table
+     - Inserts relevant artist data from log file as a record into the
+     `artists` table
+    """
     # open song file
     df = pd.read_json(filepath, lines=True)
 
     # insert song record
     song_data = df[['song_id', 'title', 'artist_id', 'year', 'duration']].\
-                 values[0].tolist()
+                values[0].tolist()
     cur.execute(song_table_insert, song_data)
 
     # insert artist record
@@ -22,6 +30,16 @@ def process_song_file(cur, filepath):
 
 
 def process_log_file(cur, filepath):
+    """
+    Processes a single log file:
+    - Reads the JSON log file
+    - Transforms log timestamp data
+    - Inserts relevant time data from log file as records into the `time` table
+    - Inserts relevant user data from log file as records into the `users`
+      table
+    - Inserts relevant songplay data from log file and `songs`+`artists`
+      tables into `songplays` table
+    """
     # open log file
     df = pd.read_json(filepath, lines=True)
 
@@ -73,6 +91,10 @@ def process_log_file(cur, filepath):
 
 
 def process_data(cur, conn, filepath, func):
+    """
+    Processes all the JSON files from passed `filepath` directory using passed
+    `func` function
+    """
     # get all files matching extension from directory
     all_files = []
     # generates the filename
@@ -95,18 +117,23 @@ def process_data(cur, conn, filepath, func):
 
 
 def main():
+    """
+    - Creates connection+cursor to database
+    - Calls helper functions for processing JSON files at
+      passed directory `filepath`s
+    - Closes database connection
+    """
     conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=student password=student")
     cur = conn.cursor()
 
     process_data(cur, conn, filepath='data/song_data', func=process_song_file)
     process_data(cur, conn, filepath='data/log_data', func=process_log_file)
 
+    # cur.execute("select * from songplays WHERE song_id is not null and artist_id is not null")
+    # results = cur.fetchall()
+    # print("Result of `select * from songplays WHERE song_id is not null and artist_id is not null`:")
+    # print(results)
     conn.close()
-    
-    cur.execute("select * from songplays WHERE song_id is not null and artist_id is not null")
-    results = cur.fetchall()
-    print("Result of `select * from songplays WHERE song_id is not null and artist_id is not null`:")
-    print(results)
 
 if __name__ == "__main__":
     main()
